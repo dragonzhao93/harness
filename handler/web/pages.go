@@ -28,8 +28,8 @@ import (
 func HandleIndex(host string, session core.Session, license core.LicenseService) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		user, _ := session.Get(r)
-		if user == nil && r.URL.Path == "/" {
-			http.Redirect(rw, r, "/welcome", 303)
+		if user == nil && r.URL.Path == "/drone-ui" {
+			http.Redirect(rw, r, "/drone-ui/welcome", 303)
 			return
 		}
 
@@ -40,6 +40,8 @@ func HandleIndex(host string, session core.Session, license core.LicenseService)
 			out = bytes.Replace(out, head, exceeded, -1)
 		} else if license.Expired(ctx) {
 			out = bytes.Replace(out, head, expired, -1)
+		} else {
+			out = bytes.Replace(out, head, baseTag, -1)
 		}
 		rw.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		rw.Write(out)
@@ -48,8 +50,9 @@ func HandleIndex(host string, session core.Session, license core.LicenseService)
 
 var (
 	head     = []byte(`<head>`)
-	expired  = []byte(`<head><script>window.LICENSE_EXPIRED=true</script>`)
-	exceeded = []byte(`<head><script>window.LICENSE_LIMIT_EXCEEDED=true</script>`)
+	expired  = []byte(`<head><base href="/drone-ui/"><script>window.LICENSE_EXPIRED=true</script>`)
+	exceeded = []byte(`<head><base href="/drone-ui/"><script>window.LICENSE_LIMIT_EXCEEDED=true</script>`)
+	baseTag  = []byte(`<head><base href="/drone-ui/">`)
 )
 
 func setupCache(h http.Handler) http.Handler {

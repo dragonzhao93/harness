@@ -70,10 +70,10 @@ func HandleLogin(
 		logger := logrus.WithField("login", account.Login)
 		logger.Debugf("attempting authentication")
 
-		redirect := "/"
+		redirect := "/drone-ui/"
 		user, err := users.FindLogin(ctx, account.Login)
 		if err == sql.ErrNoRows {
-			redirect = "/register"
+			redirect = "/drone-ui/register"
 
 			user = &core.User{
 				Login:     account.Login,
@@ -173,7 +173,7 @@ func HandleLogin(
 		// If the user account has not completed registration,
 		// redirect to the registration form.
 		if len(user.Email) == 0 && user.Created > 1619841600 {
-			redirect = "/register"
+			redirect = "/drone-ui/register"
 		}
 
 		logger.Debugf("authentication successful")
@@ -199,7 +199,7 @@ func synchronize(ctx context.Context, syncer core.Syncer, user *core.User) {
 }
 
 func writeLoginError(w http.ResponseWriter, r *http.Request, err error) {
-	http.Redirect(w, r, "/login/error?message="+err.Error(), http.StatusSeeOther)
+	http.Redirect(w, r, "/drone-ui/login/error?message="+err.Error(), http.StatusSeeOther)
 }
 
 func writeLoginErrorStr(w http.ResponseWriter, r *http.Request, s string) {
@@ -221,7 +221,7 @@ func HandleLoginForm() http.HandlerFunc {
 
 // html page displayed to collect credentials.
 var loginForm = `
-<form method="POST" action="/login">
+<form method="POST" action="/drone-ui/login">
 <input type="text" name="username" />
 <input type="password" name="password" />
 <input type="submit" />

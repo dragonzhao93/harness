@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !oss
 // +build !oss
 
 package config
@@ -19,16 +20,13 @@ package config
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/drone/drone/core"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/sirupsen/logrus"
 )
-
-// cache key pattern used in the cache, comprised of the
-// repository slug and commit sha.
-const keyf = "%d|%d|%s|%s|%s|%s|%s"
 
 // Memoize caches the conversion results for subsequent calls.
 // This micro-optimization is intended for multi-pipeline
@@ -46,6 +44,25 @@ type memoize struct {
 	cache *lru.Cache
 }
 
+func paramsToString(params map[string]string) string {
+	if len(params) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	result := ""
+	for i, k := range keys {
+		if i > 0 {
+			result += ","
+		}
+		result += k + "=" + params[k]
+	}
+	return result
+}
+
 func (c *memoize) Find(ctx context.Context, req *core.ConfigArgs) (*core.Config, error) {
 	// this is a minor optimization that prevents caching if the
 	// base converter is a global config service and is disabled.
@@ -54,7 +71,7 @@ func (c *memoize) Find(ctx context.Context, req *core.ConfigArgs) (*core.Config,
 	}
 
 	// generate the key used to cache the converted file.
-	key := fmt.Sprintf(keyf,
+	key := fmt.Sprintf("%d|%d|%s|%s|%s|%s|%s",
 		req.Repo.ID,
 		req.Build.Created,
 		req.Build.Event,
@@ -63,6 +80,9 @@ func (c *memoize) Find(ctx context.Context, req *core.ConfigArgs) (*core.Config,
 		req.Build.After,
 		req.Repo.Config,
 	)
+	if len(req.Build.Params) > 0 {
+		key += "|" + paramsToString(req.Build.Params)
+	}
 
 	logger := logrus.WithField("repo", req.Repo.Slug).
 		WithField("build", req.Build.Event).

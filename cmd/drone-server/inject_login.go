@@ -15,6 +15,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/drone/drone/cmd/drone-server/config"
 	"github.com/drone/go-login/login"
 	"github.com/drone/go-login/login/bitbucket"
@@ -25,7 +27,6 @@ import (
 	"github.com/drone/go-login/login/gogs"
 	"github.com/drone/go-login/login/stash"
 	"github.com/drone/go-scm/scm/transport/oauth2"
-	"strings"
 
 	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
@@ -70,7 +71,7 @@ func provideBitbucketLogin(config config.Config) login.Middleware {
 	return &bitbucket.Config{
 		ClientID:     config.Bitbucket.ClientID,
 		ClientSecret: config.Bitbucket.ClientSecret,
-		RedirectURL:  config.Server.Addr + "/login",
+		RedirectURL:  config.Server.Addr + "/drone-ui/login",
 	}
 }
 
@@ -140,7 +141,7 @@ func provideGitlabLogin(config config.Config) login.Middleware {
 	return &gitlab.Config{
 		ClientID:     config.GitLab.ClientID,
 		ClientSecret: config.GitLab.ClientSecret,
-		RedirectURL:  config.Server.Addr + "/login",
+		RedirectURL:  config.Server.Addr + "/drone-ui/login",
 		Server:       config.GitLab.Server,
 		Client:       defaultClient(config.GitLab.SkipVerify),
 	}
@@ -176,7 +177,7 @@ func provideStashLogin(config config.Config) login.Middleware {
 		ConsumerKey:    config.Stash.ConsumerKey,
 		ConsumerSecret: config.Stash.ConsumerSecret,
 		PrivateKey:     privateKey,
-		CallbackURL:    config.Server.Addr + "/login",
+		CallbackURL:    config.Server.Addr + "/drone-ui/login",
 		Client:         defaultClient(config.Stash.SkipVerify),
 	}
 }

@@ -112,7 +112,7 @@ func (s Server) Handler() http.Handler {
 	r.Get("/version", HandleVersion)
 	r.Get("/varz", HandleVarz(s.Client, s.License))
 
-	r.Handle("/login",
+	r.Handle("/drone-ui/login",
 		s.Login.Handler(
 			http.HandlerFunc(
 				HandleLogin(
@@ -126,15 +126,15 @@ func (s Server) Handler() http.Handler {
 			),
 		),
 	)
-	r.Get("/logout", HandleLogout())
-	r.Post("/logout", HandleLogout())
+	r.Get("/drone-ui/logout", HandleLogout())
+	r.Post("/drone-ui/logout", HandleLogout())
 
 	h := http.FileServer(dist.New())
 	h = setupCache(h)
-	r.Handle("/favicon.png", h)
-	r.Handle("/manifest.json", h)
-	r.Handle("/asset-manifest.json", h)
-	r.Handle("/static/*filepath", h)
+	r.Handle("/drone-ui/favicon.png", http.StripPrefix("/drone-ui", h))
+	r.Handle("/drone-ui/manifest.json", http.StripPrefix("/drone-ui", h))
+	r.Handle("/drone-ui/asset-manifest.json", http.StripPrefix("/drone-ui", h))
+	r.Handle("/drone-ui/static/*filepath", http.StripPrefix("/drone-ui", h))
 	r.NotFound(HandleIndex(s.Host, s.Session, s.Licenses))
 
 	return r

@@ -68,7 +68,7 @@ func provideRouter(api api.Server, web web.Server, rpcv1 rpcHandlerV1, rpcv2 rpc
 	}
 	r.Mount("/healthz", healthz)
 	r.Mount("/metrics", metrics)
-	r.Mount("/api", api.Handler())
+	r.Mount("/drone-ser/api", api.Handler())
 	r.Mount("/rpc/v2", rpcv2)
 	r.Mount("/rpc", rpcv1)
 	r.Mount("/", web.Handler())
