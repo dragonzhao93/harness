@@ -91,12 +91,16 @@ func provideHookService(client *scm.Client, renewer core.Renewer, config config.
 // provideNetrcService is a Wire provider function that returns
 // a netrc service based on the environment configuration.
 func provideNetrcService(client *scm.Client, renewer core.Renewer, config config.Config) core.NetrcService {
-	return netrc.New(
-		client,
-		renewer,
-		config.Cloning.AlwaysAuth,
-		config.Cloning.Username,
-		config.Cloning.Password,
+	return netrc.NewCache(
+		netrc.New(
+			client,
+			renewer,
+			config.Cloning.AlwaysAuth,
+			config.Cloning.Username,
+			config.Cloning.Password,
+		),
+		10,
+		time.Minute*5,
 	)
 }
 
